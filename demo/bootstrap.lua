@@ -4100,4 +4100,66 @@ boot.texinfo = bashStep {
   };
 }
 
+boot.gcc["4.7.4"] = bashStep {
+  pname = "gcc";
+  version = "4.7.4";
+
+  builder = boot.bash["5.2.15"].."/bin/bash";
+  PATH = mkBinPath {
+    boot.texinfo,
+    boot.gettext,
+    boot.pkg_config,
+    boot.findutils,
+    boot.gcc["4.0.4-pass2"],
+    boot.binutils["2.30"],
+    boot.libtool["2.4.7"],
+    boot.help2man,
+    boot.automake["1.11.2"], -- Intentionally using an older version.
+    boot.autoconf["2.64"], -- Intentionally using an older version.
+    boot.perl["5.32.1"],
+    boot.gawk["3.0.4"],
+    boot.diffutils["2.7"],
+    boot.grep["2.4"],
+    boot.bison["3.4.2"],
+    boot.flex["2.6.4"],
+    boot.m4["1.4.7"],
+    boot.bash["5.2.15"],
+    boot.coreutils["9.4"],
+    boot.sed["4.0.9-pass2"],
+    boot.tar["1.34"],
+    boot.gzip["1.2.4"],
+    boot.bzip2.pass2,
+    boot.xz,
+    boot.patch["2.7.6"],
+    boot.make["4.2.1"],
+  };
+
+  -- Different version
+  config_sub = boot.automake["1.15.1"].."/share/automake-1.15/config.sub";
+
+  C_INCLUDE_PATH = mkIncludePath {
+    boot.musl["1.2.4-pass2"],
+  };
+  LIBRARY_PATH = mkLibraryPath {
+    boot.musl["1.2.4-pass2"],
+  };
+  ACLOCAL_PATH = makeSearchPathOutput("out", "share/aclocal", {
+    boot.libtool["2.4.7"],
+    boot.pkg_config,
+    boot.autoconf_archive,
+    boot.gettext,
+  });
+  PKG_CONFIG_PATH = makeSearchPathOutput("out", "lib/pkgconfig", {
+    boot.gmp,
+    boot.zlib,
+  });
+
+  tarballs = {
+    fetchGNU {
+      path = "gcc-4.7.4/gcc-4.7.4.tar.bz2";
+      hash = "sha256:92e61c6dc3a0a449e62d72a38185fda550168a86702dea07125ebd3ec3996282";
+    },
+  };
+}
+
 return boot

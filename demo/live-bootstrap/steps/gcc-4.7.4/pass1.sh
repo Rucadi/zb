@@ -22,26 +22,26 @@ src_prepare() {
     for dir in intl libcpp libdecnumber; do
         cd $dir
         rm aclocal.m4
-        AUTOCONF=autoconf-2.64 AUTOM4TE=autom4te-2.64 aclocal-1.11 --acdir=../config
+        aclocal --acdir=../config
         cd ..
     done
     cd gcc
     rm aclocal.m4
-    AUTOCONF=autoconf-2.64 AUTOM4TE=autom4te-2.64 aclocal-1.11 --acdir=../config
+    aclocal --acdir=../config
     cd ..
     cd fixincludes
     rm aclocal.m4
-    AUTOCONF=autoconf-2.64 AUTOM4TE=autom4te-2.64 aclocal-1.11 --acdir=../gcc
+    aclocal --acdir=../gcc
     cd ..
     for dir in boehm-gc libffi libgfortran libgomp libitm libjava libmudflap libobjc libquadmath libssp lto-plugin zlib; do
         cd $dir
         rm aclocal.m4
-        AUTOCONF=autoconf-2.64 AUTOM4TE=autom4te-2.64 aclocal-1.11
+        aclocal
         cd ..
     done
 
     cd libstdc++-v3
-    ACLOCAL=aclocal-1.11 AUTOMAKE=automake-1.11 AUTOCONF=autoconf-2.64 AUTOM4TE=autom4te-2.64 autoreconf-2.64 -fi
+    autoreconf -fi
     cd ..
 
     # Regenerate configure scripts
@@ -50,7 +50,7 @@ src_prepare() {
     for dir in $(find . -mindepth 2 -maxdepth 2 -name configure.ac | sed 's#/configure.ac##' | grep -v -x './libgo' | tr "\n" " " | sed -e 's/ $/\n/' -e 's/^boehm-gc //'); do
         pushd "$dir"
         rm configure
-        autoconf-2.64 || autoconf-2.64
+        autoconf || autoconf
         popd
     done
 
@@ -59,21 +59,21 @@ src_prepare() {
     for dir in $(find . -mindepth 2 -maxdepth 2 -name Makefile.am | sed 's#/Makefile.am##' | grep -v -x './libgo' | tr "\n" " " | sed -e 's/ $/\n/' -e 's/^boehm-gc //'); do
         pushd "$dir"
         rm Makefile.in
-        AUTOCONF=autoconf-2.64 AUTOM4TE=autom4te-2.64 automake-1.11 --add-missing
+        automake --add-missing
         popd
     done
 
     for dir in libdecnumber libcpp libiberty gcc; do
         cd $dir
         rm -f config.in
-        autoheader-2.64
+        autoheader
         cd ..
     done
 
     # Rebuild libtool files
     rm config.guess config.sub ltmain.sh
     libtoolize
-    cp "${PREFIX}/share/automake-1.15/config.sub" .
+    cp "${config_sub:?}" .
 
     # Workaround for bison being too new
     rm intl/plural.c
@@ -105,7 +105,7 @@ src_configure() {
     for dir in libiberty libcpp libdecnumber gcc libgcc libstdc++-v3; do
         mkdir $dir
         cd $dir
-        ../../$dir/configure \
+        CXXCPP="$(command -v cpp)" ../../$dir/configure \
             --prefix="${PREFIX}" \
             --libdir="${LIBDIR}" \
             --build=i386-unknown-linux-musl \
@@ -115,7 +115,7 @@ src_configure() {
             --program-transform-name= \
             --enable-languages=c,c++ \
             --disable-sjlj-exceptions \
-            --with-system-zlib
+            --with-system-zlib || ( cat config.log ; false )
         cd ..
     done
     cd ..
